@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/tabassumtaj/Host_Server_Sizing/static/css/main.e6c13ad2.css",
+    "main.js": "/tabassumtaj/Host_Server_Sizing/static/js/main.683dba55.js",
+    "static/js/453.f373d9ea.chunk.js": "/tabassumtaj/Host_Server_Sizing/static/js/453.f373d9ea.chunk.js",
+    "index.html": "/tabassumtaj/Host_Server_Sizing/index.html",
+    "main.e6c13ad2.css.map": "/tabassumtaj/Host_Server_Sizing/static/css/main.e6c13ad2.css.map",
+    "main.683dba55.js.map": "/tabassumtaj/Host_Server_Sizing/static/js/main.683dba55.js.map",
+    "453.f373d9ea.chunk.js.map": "/tabassumtaj/Host_Server_Sizing/static/js/453.f373d9ea.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.683dba55.js"
+  ]
+}
