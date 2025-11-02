@@ -48,21 +48,23 @@ export default function MitelVmwareSizingInfo_notes_from_txt() {
     "Hyper-V": { content: defaultNoteText, status: "idle" },
     "Nutanix AHV": { content: defaultNoteText, status: "idle" },
     "Nutanix ESXi": { content: defaultNoteText, status: "idle" },
-    AWS: { content: defaultNoteText, status: "idle" },
-    Azure: { content: defaultNoteText, status: "idle" },
-    Proxmox: { content: defaultNoteText, status: "idle" },
+    "AWS": { content: defaultNoteText, status: "idle" },
+    "Azure": { content: defaultNoteText, status: "idle" },
+    "Proxmox": { content: defaultNoteText, status: "idle" },
   });
 
   // Helper to map tab to filename
-  const filenameForTab = (tab) => {
+    const filenameForTab = (tab) => {
+    // Use PUBLIC_URL so paths work when the app is hosted under a subpath (GitHub Pages)
+    const base = (process.env.PUBLIC_URL && process.env.PUBLIC_URL !== "") ? process.env.PUBLIC_URL : "";
     const map = {
-      VMware: "/notes-vmware.txt",
-      "Hyper-V": "/notes-hyperv.txt",
-      "Nutanix AHV": "/notes-nutanix-ahv.txt",
-      "Nutanix ESXi": "/notes-nutanix-esxi.txt",
-      AWS: "/notes-aws.txt",
-      Azure: "/notes-azure.txt",
-      Proxmox: "/notes-proxmox.txt",
+      "VMware": `${base}/notes-vmware.txt`,
+      "Hyper-V": `${base}/notes-hyperv.txt`,
+      "Nutanix AHV": `${base}/notes-nutanix-ahv.txt`,
+      "Nutanix ESXi": `${base}/notes-nutanix-esxi.txt`,
+      "AWS": `${base}/notes-aws.txt`,
+      "Azure": `${base}/notes-azure.txt`,
+      "Proxmox": `${base}/notes-proxmox.txt`,
     };
     return map[tab] || null;
   };
@@ -95,8 +97,15 @@ export default function MitelVmwareSizingInfo_notes_from_txt() {
     loadExcel("/Sizing-AWS.xlsx", setAWSData);
     loadExcel("/Sizing-Nutanix-AHV.xlsx", SetNutanixAHVData);
   }, []);
+  
+    // Helper: convert literal \n sequences (two characters) to real newlines
+  const fixEscapedNewlines = (s) => {
+    if (typeof s !== "string") return s;
+    return s.replace(/\\n/g, "\n");
+  };
 
-  // On mount, fetch all notes files (prefetch)
+
+ // On mount, fetch all notes files (prefetch) — show file content or a clear missing-file message
   useEffect(() => {
     const tabsToFetch = tabs;
     tabsToFetch.forEach(async (tab) => {
@@ -106,17 +115,20 @@ export default function MitelVmwareSizingInfo_notes_from_txt() {
         setTabNotes((prev) => ({ ...prev, [tab]: { ...prev[tab], status: "loading" } }));
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) {
-          // fallback to default text if missing
-          console.warn(`Notes file not found: ${url} (${res.status})`);
-          setTabNotes((prev) => ({ ...prev, [tab]: { content: defaultNoteText, status: "fallback" } }));
+          // do NOT fallback to default; show explicit missing-file message
+          const missingMsg = `Notes file not found: ${url} (HTTP ${res.status}). Please add the file to the public/ folder.`;
+          setTabNotes((prev) => ({ ...prev, [tab]: { content: missingMsg, status: "missing" } }));
+          console.warn(missingMsg);
           return;
         }
         const text = await res.text();
-        const content = text && text.trim().length > 0 ? text : defaultNoteText;
+        // If file exists but is empty, show a message rather than using a default
+        const content = text && text.trim().length > 0 ? fixEscapedNewlines(text) : `Notes file is empty: ${url}`;
         setTabNotes((prev) => ({ ...prev, [tab]: { content, status: "loaded" } }));
       } catch (err) {
-        console.error("Error fetching notes", url, err);
-        setTabNotes((prev) => ({ ...prev, [tab]: { content: defaultNoteText, status: "error" } }));
+        const errMsg = `Error fetching ${url}: ${String(err)}`;
+        console.error(errMsg);
+        setTabNotes((prev) => ({ ...prev, [tab]: { content: errMsg, status: "error" } }));
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,13 +137,13 @@ export default function MitelVmwareSizingInfo_notes_from_txt() {
   // Platform data memoized
   const platformData = useMemo(
     () => ({
-      VMware: vmwareData,
+      "VMware": vmwareData,
       "Hyper-V": hypervData,
       "Nutanix AHV": nutanixAHVData,
       "Nutanix ESXi": nutanixEsxiData,
-      AWS: AWSData,
-      Azure: AzureData,
-      Proxmox: proxmoxData,
+      "AWS": AWSData,
+      "Azure": AzureData,
+      "Proxmox": proxmoxData,
     }),
     [vmwareData, hypervData, nutanixAHVData, nutanixEsxiData, AWSData, AzureData, proxmoxData]
   );
@@ -274,7 +286,9 @@ export default function MitelVmwareSizingInfo_notes_from_txt() {
       <div className="mt-6 bg-white rounded-md shadow-md border border-[#D0D7DE] p-4 text-[#002B49]">
         <h2 className="text-lg font-semibold">Notes — {activeTab}</h2>
         <div className="mt-2 whitespace-pre-wrap text-sm">
-          {tabNotes[activeTab] ? tabNotes[activeTab].content : defaultNoteText}
+         
+		  {fixEscapedNewlines(tabNotes[activeTab]?.content ?? `Notes file not loaded yet for ${activeTab}`)}
+
         </div>
         <div className="mt-3 text-xs text-gray-500">
           {/* status indicator */}
