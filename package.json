@@ -1,7 +1,6 @@
 {
   "name": "mitel-sizing",
   "homepage": "https://tabassumtaj.github.io/Host_Server_Sizing",
-
   "version": "0.1.0",
   "private": true,
   "dependencies": {
